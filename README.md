@@ -1,17 +1,23 @@
 # Posts ETL (JSONPlaceholder) — простая ETL-сборка в Docker
 
-Коротко: контейнер поднимает PostgreSQL и cron, два скрипта (`extract` и `transform`) выполняются по расписанию и формируют витрину "топ пользователей по числу постов".
+Коротко: проект поднимает PostgreSQL и ETL (cron), два скрипта `extract` и `transform` выполняются по расписанию и формируют витрину **топ пользователей по числу постов**. Дополнительно есть лёгкий веб-сервис с endpoint `/top`.
 
 ## Что в репозитории
-- `Dockerfile` — образ на базе `postgres:15` + python + cron
-- `app/extract.py` — получает посты из API и сохраняет в `raw_users_by_posts` (upsert по `post_id`)
-- `app/transform.py` — агрегирует из `raw_users_by_posts` в `top_users_by_posts` (upsert по `user_id`)
+- `docker-compose.yml` — стек с сервисами `db`, `etl`, `web`
+- `etl/Dockerfile` — образ для ETL (python + cron)
+- `etl/app/extract.py` — получает посты из API и сохраняет в `raw_users_by_posts` (upsert по `post_id`)
+- `etl/app/transform.py` — агрегирует из `raw_users_by_posts` в `top_users_by_posts` (upsert по `user_id`)
+- `etl/app/utils.py` — вспомогательные функции
+- `etl/crontab.template` — шаблон cron-расписания
+- `etl/entrypoint.sh` — запускает cron и подставляет переменные окружения
+- `web/Dockerfile` — образ веб-сервиса (Flask)
+- `web/app.py` — сервис с endpoint `/top` (HTML / JSON)
 - `infra/init_db.sql` — создание таблиц (выполняется при инициализации БД)
-- `crontab.template` — шаблон cron расписания (подменяется `envsubst`)
-- `entrypoint.sh` — запускает postgres, применяет crontab и запускает cron
-- `run.sh` — optional: сборка и запуск контейнера одной командой
+- `run.sh` — опциональный скрипт для сборки и запуска
+- `tests/` — unit-тесты (pytest)
 
-## Как запустить (одной командой)
-В терминале ввести следующие команды и все вроде должно быть ок
-chmod +x run.sh
-./run.sh
+## Как запустить
+- Установить Docker и Docker Compose v2
+- Выполнить команду:
+  ```bash
+  docker compose up -d --build

@@ -1,0 +1,7 @@
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# source env for cron jobs
+# note: cron will run commands as root per file format below
+${EXTRACT_CRON:-*/5 * * * *} root . /opt/etl/env.sh; /usr/local/bin/python /opt/etl/app/extract.py >> /var/log/extract.log 2>&1
+${TRANSFORM_CRON:-*/6 * * * *} root . /opt/etl/env.sh; /usr/bin/python3 /opt/etl/app/transform.py >> /var/log/transform.log 2>&1
